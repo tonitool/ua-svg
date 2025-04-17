@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to SVG Converter</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 0px; /* Sharp edges */
+            text-align: center;
+            border: 2px solid #FF0087; /* Pink border */
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: #FF0087;
+            font-weight: 700;
+        }
+        input[type="file"] {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 2px solid #FF0087;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+        input[type="file"]:hover {
+            border-color: #FF4C94;
+        }
+        button {
+            background-color: #FF0087;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        button:hover {
+            background-color: #FF4C94;
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+        .error {
+            color: red;
+        }
+        .result {
+            margin-top: 30px;
+        }
+        .result img {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 5px;
+        }
+        /* Add animation to buttons and hover effects */
+        button:active {
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>SVG Converter</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="imageInput" name="image" accept="image/png, image/jpeg" required>
+            <button type="submit">Convert</button>
+        </form>
+        <div id="status" class="status"></div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById("imageInput");
+
+            if (!fileInput.files[0]) {
+                document.getElementById("status").textContent = "Please select an image.";
+                return;
+            }
+
+            formData.append("image", fileInput.files[0]);
+            document.getElementById("status").textContent = "Uploading and converting...";
+
+            try {
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.url) {
+                    document.getElementById("status").textContent = "Conversion complete!";
+                    const img = document.createElement("img");
+                    img.src = result.url;
+                    img.alt = "Converted SVG Image";
+                    document.getElementById("result").appendChild(img);
+                } else {
+                    document.getElementById("status").textContent = "Failed to convert image.";
+                    document.getElementById("status").classList.add("error");
+                }
+            } catch (error) {
+                document.getElementById("status").textContent = "An error occurred: " + error.message;
+                document.getElementById("status").classList.add("error");
+            }
+        });
+    </script>
+
+</body>
+</html>
